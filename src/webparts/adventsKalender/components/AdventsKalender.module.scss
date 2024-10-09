@@ -1,0 +1,90 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.adventsKalender {
+  overflow: hidden;
+  padding: 1em;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+.welcome {
+  text-align: center;
+}
+
+.welcomeImage {
+  width: 100%;
+  max-width: 420px;
+}
+
+.links {
+  a {
+    text-decoration: none;
+    color: "[theme:link, default:#03787c]";
+    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
+
+    &:hover {
+      text-decoration: underline;
+      color: "[theme:linkHovered, default: #014446]";
+      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+    }
+  }
+}
+
+.adventCalenderContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  max-width: 90%;
+  margin: 0 auto;
+}
+
+.adventBox {
+  flex-basis: 48%;
+  height: 200px;
+  background-color: #f3f2f1;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #323130;
+  text-align: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+}
+
+.adventBox:hover {
+  transform: scale(1.05);
+}
+
+.clickable {
+  cursor: pointer;
+  background-color: #d7e9f7;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.clicked {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.title {
+  margin-left: 5%;
+  font-size: 1.5em;
+  font-weight: 600;
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "advents-kalender-web-part-client-side-solution",
+    "id": "80c763a7-7c41-4229-b95c-6f30f0778cc3",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.19.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "AdventsKalenderWebPart description"
+      },
+      "longDescription": {
+        "default": "AdventsKalenderWebPart description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "advents-kalender-web-part Feature",
+        "description": "The feature that activates elements of the advents-kalender-web-part solution.",
+        "id": "21f9cfae-8890-4f15-8afb-61515d60899f",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/advents-kalender-web-part.sppkg"
+  }
+}

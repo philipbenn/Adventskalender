@@ -1,0 +1,19 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "advents-kalender-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/adventsKalender/AdventsKalenderWebPart.js",
+          "manifest": "./src/webparts/adventsKalender/AdventsKalenderWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "AdventsKalenderWebPartStrings": "lib/webparts/adventsKalender/loc/{locale}.js",
+    "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
+  }
+}
