@@ -13,10 +13,26 @@ build.rig.getTasks = function () {
   return result;
 };
 
+build.sass.setConfig({
+  dropCssFiles: true,
+  useCSSModules: true,
+  warnOnNonCSSModules: false,
+  cleanCssOptions: {
+    level: 0,
+    compatibility: {
+      colors: {
+        hexAlpha: false, // controls 4- and 8-character hex color support
+        opacity: true // controls `rgba()` / `hsla()` color support
+      }
+    }
+    , returnPromise: true
+  },
+  autoprefixerOptions: { overrideBrowserslist: ["> 1%", "last 2 versions", "not dead"] }
+});
+
 /* fast-serve */
 const { addFastServe } = require("spfx-fast-serve-helpers");
 addFastServe(build);
 /* end of fast-serve */
 
 build.initialize(require('gulp'));
-

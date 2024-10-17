@@ -3,91 +3,83 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
-
 import * as strings from 'AdventsKalenderWebPartStrings';
-import AdventsKalender from './components/AdventsKalender';
-import { IAdventsKalenderProps } from './components/IAdventsKalenderProps';
+import AdventsCalendar from './components/AdventsKalender';
+import { IAdventsCalendarProps } from './interface/IAdventsKalenderProps';
 import { PropertyFieldDateTimePicker, DateConvention } from '@pnp/spfx-property-controls/lib/PropertyFieldDateTimePicker';
-import { IDateTimeFieldValue } from "@pnp/spfx-property-controls/lib/PropertyFieldDateTimePicker";
+import { IItemsCalendarWebPartProps } from './interface/IItemCalenderProps';
 import { PropertyFieldFilePicker, IFilePickerResult } from "@pnp/spfx-property-controls/lib/PropertyFieldFilePicker";
+import { PropertyFieldColorPicker, PropertyFieldColorPickerStyle } from '@pnp/spfx-property-controls/lib/PropertyFieldColorPicker';
+import { PropertyFieldPeoplePicker, PrincipalType } from '@pnp/spfx-property-controls/lib/PropertyFieldPeoplePicker';
 
-export interface IAdventsKalenderWebPartProps {
-  description: string;
-  FørsteAdventDateTime: IDateTimeFieldValue;  
-  AndenAdventDateTime: IDateTimeFieldValue;   
-  TredjeAdventDateTime: IDateTimeFieldValue;  
-  FjerdeAdventDateTime: IDateTimeFieldValue;
-  FørsteAdventURL: string;
-  AndenAdventURL: string;
-  TredjeAdventURL: string;
-  FjerdeAdventURL: string;
-  FørsteAdventTitle: string;
-  AndenAdventTitle: string;
-  TredjeAdventTitle: string;
-  FjerdeAdventTitle: string;
-  filePickerResult: IFilePickerResult;
-  title: string;
-}
-
-export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdventsKalenderWebPartProps> {
+export default class AdventsCalendarWebPart extends BaseClientSideWebPart<IItemsCalendarWebPartProps> {
 
   private _isDarkTheme: boolean = false;
   private _environmentMessage: string = '';
 
   public render(): void {
-    const backgroundImageUrl = this.properties.filePickerResult?.fileAbsoluteUrl || '';  // Use the stored URL
-  
-    const element: React.ReactElement<IAdventsKalenderProps> = React.createElement(
-      AdventsKalender,
+    const backgroundImageUrl = this.properties.backgroundImageResult?.fileAbsoluteUrl || '';
+
+    const element: React.ReactElement<IAdventsCalendarProps> = React.createElement(
+      AdventsCalendar,
       {
         description: this.properties.description,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
         userDisplayName: this.context.pageContext.user.displayName,
-        førsteAdventDateTime: this.properties.FørsteAdventDateTime, 
-        andenAdventDateTime: this.properties.AndenAdventDateTime, 
-        tredjeAdventDateTime: this.properties.TredjeAdventDateTime,
-        fjerdeAdventDateTime: this.properties.FjerdeAdventDateTime,
-        førsteAdventUrl: this.properties.FørsteAdventURL,
-        andenAdventUrl: this.properties.AndenAdventURL,
-        tredjeAdventUrl: this.properties.TredjeAdventURL,
-        fjerdeAdventUrl: this.properties.FjerdeAdventURL,
+        firstItemDateTime: this.properties.firstItemDateTime, 
+        secondItemDateTime: this.properties.secondItemDateTime, 
+        thirdItemDateTime: this.properties.thirdItemDateTime,
+        fourthItemDateTime: this.properties.fourthItemDateTime,
+        firstItemUrl: this.properties.firstItemURL,
+        secondItemUrl: this.properties.secondItemURL,
+        thirdItemUrl: this.properties.thirdItemURL,
+        fourthItemUrl: this.properties.fourthItemURL,
         backgroundImageUrl: backgroundImageUrl,
         title: this.properties.title,
-        førsteAdventTitle: this.properties.FørsteAdventTitle,
-        andenAdventTitle: this.properties.AndenAdventTitle,
-        tredjeAdventTitle: this.properties.TredjeAdventTitle,
-        fjerdeAdventTitle: this.properties.FjerdeAdventTitle
+        firstItemTitle: this.properties.firstItemTitle,
+        secondItemTitle: this.properties.secondItemTitle,
+        thirdItemTitle: this.properties.thirdItemTitle,
+        fourthItemTitle: this.properties.fourthItemTitle,
+        isOneElement: this.properties.isOneElement,
+        firstItemImage: this.properties.firstItemImage,
+        secondItemImage: this.properties.secondItemImage,
+        thirdItemImage: this.properties.thirdItemImage,
+        fourthItemImage: this.properties.fourthItemImage,
+        textColor: this.properties.textColor,
+        group: this.properties.group,
+        context: this.context
       }
     );
   
     ReactDom.render(element, this.domElement);
   }
   
-  protected onInit(): Promise<void> {
+  protected async onInit(): Promise<void> {
     return this._getEnvironmentMessage().then(message => {
       this._environmentMessage = message;
     });
   }
 
   private _getEnvironmentMessage(): Promise<string> {
-    if (!!this.context.sdks.microsoftTeams) { // running in Teams, office.com or Outlook
+    if (!!this.context.sdks.microsoftTeams) {
       return this.context.sdks.microsoftTeams.teamsJs.app.getContext()
         .then(context => {
           let environmentMessage: string = '';
           switch (context.app.host.name) {
-            case 'Office': // running in Office
+            case 'Office':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOffice : strings.AppOfficeEnvironment;
               break;
-            case 'Outlook': // running in Outlook
+            case 'Outlook':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOutlook : strings.AppOutlookEnvironment;
               break;
-            case 'Teams': // running in Teams
+            case 'Teams':
             case 'TeamsModern':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentTeams : strings.AppTeamsTabEnvironment;
               break;
@@ -128,49 +120,66 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
     return Version.parse('1.0');
   }
 
+
+protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: any, newValue: any): void {
+  if (propertyPath === 'textColor' && newValue !== oldValue) {
+    this.properties.textColor = newValue;
+    this.render();
+  }
+  
+  super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+}
+
+
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
         {
-          header: {
-            description: "Indstillinger"
-          },
+          displayGroupsAsAccordion: true,
           groups: [
             {
-              groupName: "Generelt",
+              groupName: strings.GeneralGroupName,
+              isCollapsed: true,
               groupFields: [
-                PropertyFieldFilePicker('filePicker', {
+                PropertyFieldPeoplePicker('group', {
+                  label: strings.peoplePickerLabel,
+                  initialData: this.properties.group,
+                  allowDuplicate: false,
+                  principalType: [PrincipalType.SharePoint],
+                  onPropertyChange: this.onPropertyPaneFieldChanged,
                   context: this.context,
-                  filePickerResult: this.properties.filePickerResult,
-                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
                   properties: this.properties,
-                  onSave: (filePickerResult: IFilePickerResult) => {
-                    console.log(filePickerResult);
-                    this.properties.filePickerResult = filePickerResult;
-                    this.context.propertyPane.refresh();
-                    this.render();
-                  },
-                  onChanged: (filePickerResult: IFilePickerResult) => {
-                    console.log(filePickerResult);
-                    this.properties.filePickerResult = filePickerResult;
-                  },
-                  key: "filePickerId",
-                  buttonLabel: "Select Image",
-                  label: "Background Image",
-                  accepts: [".jpg", ".jpeg", ".png"],
+                  deferredValidationTime: 0,
+                  key: 'peopleFieldId'
+                }),
+                PropertyPaneToggle('isOneElement', {
+                  label: strings.ToggleLabel,
                 }),
                 PropertyPaneTextField('title', {
-                  label: 'Page Title',
+                  label: strings.PageLabel,
                   value: this.properties.title
+                }),
+                PropertyFieldColorPicker('textColor', {
+                  label: strings.colorPickerLabel,
+                  selectedColor: this.properties.textColor,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties: this.properties,
+                  disabled: false,
+                  isHidden: false,
+                  alphaSliderHidden: true,
+                  style: PropertyFieldColorPickerStyle.Full,
+                  iconName: 'Precipitation',
+                  key: 'colorFieldId'
                 })
               ]
             },
             {
-              groupName: "Første Advent",
+              groupName: strings.FirstGroupName,
+              isCollapsed: true,
               groupFields: [
-                PropertyFieldDateTimePicker('FørsteAdventDateTime', {
-                  label: 'Select the date',
-                  initialDate: this.properties.FørsteAdventDateTime,
+                PropertyFieldDateTimePicker('firstItemDateTime', {
+                  label: strings.FirstGroupDateLabel,
+                  initialDate: this.properties.firstItemDateTime,
                   dateConvention: DateConvention.Date,
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
@@ -178,20 +187,41 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
                   key: 'dateFieldId1',
                   showLabels: false
                 }),
-                PropertyPaneTextField('FørsteAdventURL', {
-                  label: 'Url'
+                PropertyPaneTextField('firstItemURL', {
+                  label: strings.FirstGroupUrlLabel
                 }),
-                PropertyPaneTextField('FørsteAdventTitle', {
-                  label: 'Title'
-                })
+                PropertyPaneTextField('firstItemTitle', {
+                  label: strings.FirstGroupTitle
+                }),
+                PropertyFieldFilePicker('firstItemImage', {
+                  context: this.context,
+                  filePickerResult: this.properties.firstItemImage,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties: this.properties,
+                  onSave: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.firstItemImage = filePickerResult;
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                  onChanged: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.firstItemImage = filePickerResult;
+                  },
+                  key: "filePickerId1",
+                  buttonLabel: strings.FirstGroupButtonLabel,
+                  label: strings.FirstGroupImageLabel,
+                  accepts: [".jpg", ".jpeg", ".png"],
+                }),
               ]
             },
             {
-              groupName: "Anden Advent",
+              groupName: strings.SecondGroupName,
+              isCollapsed: true,
               groupFields: [
-                PropertyFieldDateTimePicker('AndenAdventDateTime', {
-                  label: 'Select the date',
-                  initialDate: this.properties.AndenAdventDateTime,
+                PropertyFieldDateTimePicker('secondItemDateTime', {
+                  label: strings.SecondGroupDateLabel,
+                  initialDate: this.properties.secondItemDateTime,
                   dateConvention: DateConvention.Date,
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
@@ -199,20 +229,41 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
                   key: 'dateFieldId2',
                   showLabels: false
                 }),
-                PropertyPaneTextField('AndenAdventURL', {
-                  label: 'Url'
+                PropertyPaneTextField('secondItemURL', {
+                  label: strings.SecondGroupUrlLabel
                 }),
-                PropertyPaneTextField('AndenAdventTitle', {
-                  label: 'Title'
+                PropertyPaneTextField('secondItemTitle', {
+                  label: strings.SecondGroupTitle
+                }),
+                PropertyFieldFilePicker('secondItemImage', {
+                  context: this.context,
+                  filePickerResult: this.properties.secondItemImage,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties: this.properties,
+                  onSave: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.secondItemImage = filePickerResult;
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                  onChanged: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.secondItemImage = filePickerResult;
+                  },
+                  key: "filePickerId2",
+                  buttonLabel: strings.SecondGroupButtonLabel,
+                  label: strings.SecondGroupImageLabel,
+                  accepts: [".jpg", ".jpeg", ".png"],
                 }),
               ]
             },
             {
-              groupName: "Tredje Advent",
+              groupName: strings.ThirdGroupName,
+              isCollapsed: true,
               groupFields: [
-                PropertyFieldDateTimePicker('TredjeAdventDateTime', {
-                  label: 'Select the date',
-                  initialDate: this.properties.TredjeAdventDateTime,
+                PropertyFieldDateTimePicker('thirdItemDateTime', {
+                  label: strings.ThirdGroupDateLabel,
+                  initialDate: this.properties.thirdItemDateTime,
                   dateConvention: DateConvention.Date,
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
@@ -220,20 +271,41 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
                   key: 'dateFieldId3',
                   showLabels: false
                 }),
-                PropertyPaneTextField('TredjeAdventURL', {
-                  label: 'Url'
+                PropertyPaneTextField('thirdItemURL', {
+                  label: strings.ThirdGroupUrlLabel
                 }),
-                PropertyPaneTextField('TredjeAdventTitle', {
-                  label: 'Title'
+                PropertyPaneTextField('thirdItemTitle', {
+                  label: strings.ThirdGroupTitle
+                }),
+                PropertyFieldFilePicker('thirdItemImage', {
+                  context: this.context,
+                  filePickerResult: this.properties.thirdItemImage,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties: this.properties,
+                  onSave: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.thirdItemImage = filePickerResult;
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                  onChanged: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.thirdItemImage = filePickerResult;
+                  },
+                  key: "filePickerId3",
+                  buttonLabel: strings.ThirdGroupButtonLabel,
+                  label: strings.ThirdGroupImageLabel,
+                  accepts: [".jpg", ".jpeg", ".png"],
                 }),
               ]
             },
             {
-              groupName: "Fjerde Advent",
+              groupName: strings.FourthGroupName,
+              isCollapsed: true,
               groupFields: [
-                PropertyFieldDateTimePicker('FjerdeAdventDateTime', {
-                  label: 'Select the date',
-                  initialDate: this.properties.FjerdeAdventDateTime,
+                PropertyFieldDateTimePicker('fourthItemDateTime', {
+                  label: strings.FourthGroupDateLabel,
+                  initialDate: this.properties.fourthItemDateTime,
                   dateConvention: DateConvention.Date,
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
@@ -241,11 +313,31 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
                   key: 'dateFieldId4',
                   showLabels: false
                 }),
-                PropertyPaneTextField('FjerdeAdventURL', {
-                  label: 'Url'
+                PropertyPaneTextField('fourthItemURL', {
+                  label: strings.FourthGroupUrlLabel
                 }),
-                PropertyPaneTextField('FjerdeAdventTitle', {
-                  label: 'Title'
+                PropertyPaneTextField('fourthItemTitle', {
+                  label: strings.FourthGroupTitle
+                }),
+                PropertyFieldFilePicker('fourthItemImage', {
+                  context: this.context,
+                  filePickerResult: this.properties.fourthItemImage,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties: this.properties,
+                  onSave: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.fourthItemImage = filePickerResult;
+                    this.context.propertyPane.refresh();
+                    this.render();
+                  },
+                  onChanged: (filePickerResult: IFilePickerResult) => {
+                    console.log(filePickerResult);
+                    this.properties.fourthItemImage = filePickerResult;
+                  },
+                  key: "filePickerId4",
+                  buttonLabel: strings.FourthGroupButtonLabel,
+                  label: strings.FourthGroupImageLabel,
+                  accepts: [".jpg", ".jpeg", ".png"],
                 }),
               ]
             }
@@ -254,4 +346,4 @@ export default class AdventsKalenderWebPart extends BaseClientSideWebPart<IAdven
       ]
     };
   }
-}  
+}
